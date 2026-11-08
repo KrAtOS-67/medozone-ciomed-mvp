@@ -1,0 +1,4 @@
+ALTER TABLE paciente ADD COLUMN IF NOT EXISTS estado_clinico VARCHAR(30) NOT NULL DEFAULT 'NUEVO';
+
+ALTER TABLE paciente ADD CONSTRAINT paciente_estado_check 
+CHECK (estado_clinico IN ('NUEVO', 'EN_TRATAMIENTO', 'EN_SEGUIMIENTO', 'ALTA'));

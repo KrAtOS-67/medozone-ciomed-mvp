@@ -1,0 +1,73 @@
+﻿# ============================================
+# SECRETOS (NUNCA SUBIR)
+# ============================================
+.env
+.env.*
+*.pem
+*.key
+*.jks
+*.keystore
+key.properties
+secrets/
+
+# ============================================
+# BACKEND (Spring Boot / Maven / Gradle)
+# ============================================
+backend/target/
+backend/build/
+backend/.gradle/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.jar
+backend/*.war
+backend/*.log
+backend/logs/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-secret.*
+
+# ============================================
+# FRONTEND (Flutter / Dart)
+# ============================================
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/coverage/
+mobile/.idea/
+mobile/*.iml
+mobile/*.ipr
+mobile/*.iws
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/android/app/upload-keystore.jks
+mobile/android/app/build/
+mobile/android/.cxx/
+
+# ============================================
+# IDE / Editor
+# ============================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ============================================
+# ARCHIVOS TEMPORALES (de la limpieza de encoding)
+# ============================================
+*.bak
+*.tmp
+*.temp
+*.log
+Thumbs.db
+Desktop.ini

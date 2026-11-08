@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:18.6
+    container_name: medozone-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-medozone}
+      POSTGRES_USER: ${POSTGRES_USER:-medozone_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      PGDATA: /var/lib/postgresql/18/docker
+    ports:
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:5432:5432"
+    volumes:
+      - medozone_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medozone-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-medozone}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-medozone_app}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      
+      JWT_SECRET_BASE64: ${JWT_SECRET_BASE64:?Define JWT_SECRET_BASE64 en .env}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-240}
+      MEDOZONE_DEMO_PASSWORD: ${MEDOZONE_DEMO_PASSWORD:?Define MEDOZONE_DEMO_PASSWORD en .env}
+      CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USER}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASS}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+
+  
+      APP_MAIL_FROM: ${MAIL_FROM:-no-reply@ciomed.bo}
+      APP_MAIL_ENABLED: "true"
+      
+    ports:
+      - "${API_BIND_ADDRESS:-0.0.0.0}:8089:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  medozone_pgdata:

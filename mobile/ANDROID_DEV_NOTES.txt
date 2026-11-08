@@ -1,0 +1,13 @@
+CONFIGURACIÓN DE PLATAFORMAS FLUTTER
+
+Los wrappers nativos se crean en el directorio mobile mediante scripts/prepare-flutter.ps1 (PowerShell) o scripts/prepare-flutter.sh (Linux/macOS).
+
+El script configura el permiso INTERNET y HTTP local para Android, además de NSAllowsLocalNetworking para pruebas locales en iOS. Esos permisos son únicamente de desarrollo. En producción debes utilizar HTTPS con certificado válido y retirar el permiso de tráfico HTTP sin cifrar.
+
+URLs API recomendadas:
+- Android Emulator: http://10.0.2.2:8080/api
+- iOS Simulator: http://localhost:8080/api
+- Web/desktop: http://localhost:8080/api
+- Dispositivo físico: http://IP_LAN_DEL_EQUIPO:8080/api
+
+Para compilar iOS necesitas macOS y Xcode. Para escritorio, instala el compilador nativo del sistema operativo destino. En Linux, flutter_secure_storage requiere libsecret-1-dev y un keyring activo.
