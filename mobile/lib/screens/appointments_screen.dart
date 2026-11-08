@@ -184,7 +184,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                       child: const Row(children: [
                                         Icon(Icons.check_circle, size: 12, color: Colors.green),
                                         SizedBox(width: 4),
-                                        Text('Preparado por Enfermería', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                                        Text('Preparado', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
                                       ]),
                                     )
                                   else if (sesionEstado == null && (_esMedico || _esEnfermera))
@@ -208,19 +208,38 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                   const SizedBox(height: 12),
                                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                                     if (_esMedico || _esEnfermera) ...[
-                                      OutlinedButton.icon(
-                                        onPressed: () => _cambiarEstado(cita, 'AUSENTE'),
-                                        icon: const Icon(Icons.person_off, size: 18, color: Colors.orange),
-                                        label: const Text('Ausente', style: TextStyle(color: Colors.orange)),
-                                        style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.orange)),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      FilledButton.icon(
-                                        onPressed: () => _abrirPerfilPaciente(cita),
-                                        icon: Icon(sesionEstado == 'PENDIENTE' ? Icons.check_circle : Icons.monitor_heart, size: 18),
-                                        label: Text(sesionEstado == 'PENDIENTE' ? 'Completar Sesión' : 'Atender'),
-                                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
-                                      ),
+                                      if (sesionEstado == null) ...[
+                                        OutlinedButton.icon(
+                                          onPressed: () => _cambiarEstado(cita, 'AUSENTE'),
+                                          icon: const Icon(Icons.person_off, size: 18, color: Colors.orange),
+                                          label: const Text('Ausente', style: TextStyle(color: Colors.orange)),
+                                          style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.orange)),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      if (_esEnfermera && sesionEstado == null)
+                                        FilledButton.icon(
+                                          onPressed: () => _abrirPerfilPaciente(cita),
+                                          icon: const Icon(Icons.monitor_heart, size: 18),
+                                          label: const Text('Preparar Paciente'),
+                                          style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                                        ),
+                                      if (_esMedico) ...[
+                                        if (sesionEstado == 'PENDIENTE')
+                                          FilledButton.icon(
+                                            onPressed: () => _abrirPerfilPaciente(cita),
+                                            icon: const Icon(Icons.check_circle, size: 18),
+                                            label: const Text('Completar Sesión'),
+                                            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                                          )
+                                        else if (sesionEstado == null)
+                                          FilledButton.icon(
+                                            onPressed: () => _abrirPerfilPaciente(cita),
+                                            icon: const Icon(Icons.monitor_heart, size: 18),
+                                            label: const Text('Atender'),
+                                            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                                          ),
+                                      ],
                                     ],
                                     if (_esRecepcion) ...[
                                       OutlinedButton.icon(
@@ -285,6 +304,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     return Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
+                        // AL TOCAR, ABRE LA PANTALLA DE DETALLES
+                        onTap: () => _abrirPerfilPaciente(c),
                         leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(Icons.person, color: color)),
                         title: Text(c['paciente'].toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('CI: ${c['documento'] ?? 'S/N'} · $fechaStr\n${(c['tipoTratamiento'] ?? '').toString().replaceAll('_', ' ')}'),

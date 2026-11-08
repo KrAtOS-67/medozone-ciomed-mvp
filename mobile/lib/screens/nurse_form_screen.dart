@@ -33,6 +33,11 @@ class _NurseFormScreenState extends State<NurseFormScreen> {
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() { _guardando = true; _error = null; });
+
+    // Imprimimos en consola lo que vamos a enviar
+    print("========== GUARDANDO SESIÓN ==========");
+    print("Cita ID: ${widget.cita['id']}");
+    
     try {
       await widget.api.post('/sesiones/preparar', {
         'citaId': widget.cita['id'],
@@ -45,10 +50,25 @@ class _NurseFormScreenState extends State<NurseFormScreen> {
         'talla': double.tryParse(_talla.text),
         'observaciones': 'Enfermería: ${_observaciones.text.trim()}',
       });
+      
       if (!mounted) return;
       Navigator.pop(context, true);
-    } catch (e) {
+      
+    } catch (e, stacktrace) {
+      // ESTO IMPRIMIRÁ EL ERROR REAL EN TU CONSOLA DE FLUTTER
+      print("========== ERROR REAL ==========");
+      print(e.toString());
+      print(stacktrace.toString());
+      print("================================");
+
       if (!mounted) return;
+
+      // Si el error es porque la respuesta venía vacía (JSON decode), lo ignoramos y cerramos
+      if (e.toString().contains('FormatException') || e.toString().contains('Unexpected end of JSON')) {
+         Navigator.pop(context, true);
+         return;
+      }
+
       setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _guardando = false);

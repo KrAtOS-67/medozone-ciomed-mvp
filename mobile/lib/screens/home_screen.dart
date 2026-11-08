@@ -8,6 +8,7 @@ import 'reports_screen.dart';
 import 'sessions_screen.dart';
 import 'settings_screen.dart';
 import 'users_screen.dart';
+import 'resources_screen.dart'; // <--- NUEVO IMPORT AGREGADO
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.api, required this.onLogout});
@@ -113,8 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_administrativo) _ModuleItem('Facturación', Icons.receipt_long_outlined, () => _abrir(BillingScreen(api: widget.api))),
       if (_administrativo) _ModuleItem('Reportes', Icons.insert_chart_outlined, () => _abrir(ReportsScreen(api: widget.api))),
       
-      // USUARIOS: Solo Admin
+      // USUARIOS Y EQUIPOS: Solo Admin
       if (_esAdmin) _ModuleItem('Usuarios', Icons.people_outline, () => _abrir(UsersScreen(api: widget.api))),
+      if (_esAdmin) _ModuleItem('Equipos', Icons.bed_outlined, () => _abrir(ResourcesScreen(api: widget.api))), // <--- NUEVO MÓDULO
       
       _ModuleItem('Configuración', Icons.settings_outlined, () => _abrir(SettingsScreen(api: widget.api, onLogout: widget.onLogout))),
     ];

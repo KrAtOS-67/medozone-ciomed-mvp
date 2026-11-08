@@ -12,7 +12,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sesiones")
@@ -33,10 +35,12 @@ public class SesionController {
         if (existe != null && existe > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta cita ya tiene una sesión en curso.");
         }
+        
+        // CORRECCIÓN: Cambiamos el 0 por 1 en duracion_minutos para cumplir tu regla CHECK
         jdbc.update(
             "INSERT INTO sesion_tratamiento(cita_id, dosis, presion, temperatura, frecuencia_cardiaca, " +
             "frecuencia_respiratoria, saturacion_oxigeno, peso, talla, duracion_minutos, observaciones, registrado_por, estado) " +
-            "VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'PENDIENTE')",
+            "VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'PENDIENTE')",
             request.citaId(), request.presion(), request.temperatura(), request.frecuenciaCardiaca(),
             request.frecuenciaRespiratoria(), request.saturacionOxigeno(), request.peso(), request.talla(),
             request.observaciones(), auth.getName()
@@ -49,7 +53,7 @@ public class SesionController {
     public void completarSesion(@PathVariable long id, @Valid @RequestBody CompletarRequest request, Authentication auth) {
         List<String> sesion = jdbc.queryForList("SELECT estado FROM sesion_tratamiento WHERE id=?", String.class, id);
         if (sesion.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sesión no encontrada.");
-        if ("COMPLETADA".equals(sesion.getFirst())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta sesión ya fue completada.");
+        if ("COMPLETADA".equals(sesion.get(0))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta sesión ya fue completada.");
 
         jdbc.update(
             "UPDATE sesion_tratamiento SET dosis=?, duracion_minutos=?, observaciones=CONCAT(observaciones, ' | Medico: ', ?), estado='COMPLETADA', registrado_por=? WHERE id=?",
@@ -83,10 +87,35 @@ public class SesionController {
         );
     }
 
+    // --- NUEVO ENDPOINT AGREGADO: El que tu Flutter estaba buscando y no existía ---
+    @GetMapping("/paciente/{pacienteId}/resumen")
+    public List<Map<String, Object>> resumenTratamientos(@PathVariable long pacienteId) {
+        return jdbc.query(
+            "SELECT c.tipo_tratamiento AS \"tipoTratamiento\", MIN(c.inicio) AS inicio, COUNT(s.id) AS \"totalSesiones\" " +
+            "FROM cita c LEFT JOIN sesion_tratamiento s ON s.cita_id = c.id " +
+            "WHERE c.paciente_id = ? " +
+            "GROUP BY c.tipo_tratamiento",
+            (rs, rowNum) -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("tipoTratamiento", rs.getString("tipoTratamiento"));
+                java.sql.Timestamp ts = rs.getTimestamp("inicio");
+                map.put("inicio", ts != null ? ts.toLocalDateTime().toString() : "");
+                map.put("totalSesiones", rs.getInt("totalSesiones"));
+                return map;
+            },
+            pacienteId
+        );
+    }
+
     private SesionListDto mapDto(java.sql.ResultSet rs) throws java.sql.SQLException {
+        // CORRECCIÓN: Evitar que explote si la fecha es nula
+        java.sql.Timestamp ts = rs.getTimestamp("registrado_en");
+        LocalDateTime fechaSegura = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
+
         return new SesionListDto(
             rs.getLong("id"), rs.getString("paciente"), rs.getString("tipo_tratamiento"),
-            rs.getTimestamp("registrado_en").toLocalDateTime(), rs.getBigDecimal("dosis"),
+            fechaSegura, 
+            rs.getBigDecimal("dosis"),
             rs.getString("presion"), rs.getBigDecimal("temperatura"), rs.getObject("frecuencia_cardiaca", Integer.class),
             rs.getObject("frecuencia_respiratoria", Integer.class), rs.getObject("saturacion_oxigeno", Integer.class),
             rs.getBigDecimal("peso"), rs.getBigDecimal("talla"), rs.getInt("duracion_minutos"),

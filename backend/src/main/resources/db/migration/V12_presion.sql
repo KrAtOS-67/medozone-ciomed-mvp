@@ -1,0 +1,1 @@
+ALTER TABLE sesion_tratamiento ALTER COLUMN presion TYPE VARCHAR(20);
